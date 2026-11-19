@@ -55,6 +55,19 @@ void task1(void *p)
     for(;;)
     {
         gpio_bit_write(GPIOA, GPIO_PIN_7, (bit_status)(1-gpio_input_bit_get(GPIOA, GPIO_PIN_7)));
+#if defined(GD32VF103_DEBUG_PROBE)
+        /**
+         * ⚠️ **这里的递增是为了「运行中取值」**（live-watch 类调试）。
+         *
+         * 判据是「连续两次读到同一个变量的值，后者 > 前者」—— 只有目标**真在跑**
+         * 且变量**真的在变**时才成立。`main` 里那 8 次循环只在启动阶段跑完就停了，
+         * 所以运行态取值看不到变化。
+         *
+         * ⚠️ 节拍是 `vTaskDelay(500ms)`（上游原值，**不改**）：调用频率是上游行为，
+         *    我们只加一行让它可见地递增。
+         */
+        dp_tick++;
+#endif
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
