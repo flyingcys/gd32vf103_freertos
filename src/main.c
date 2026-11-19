@@ -55,13 +55,6 @@ void task1(void *p)
     for(;;)
     {
         gpio_bit_write(GPIOA, GPIO_PIN_7, (bit_status)(1-gpio_input_bit_get(GPIOA, GPIO_PIN_7)));
-#if defined(GD32VF103_DEBUG_PROBE)
-        /* 调试探针：断点落在 dp_adder 内部（与芯片无关的共享目标）。
-         * 只在定义了 GD32VF103_DEBUG_PROBE 时参与构建 ⇒ 缺省行为逐字节不变。 */
-        dp_tick++;
-        if (dp_msg[0] == 0) { for (;;); }
-        (void)dp_adder((int)dp_tick, 100);
-#endif
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
@@ -102,6 +95,30 @@ int main(void)
 
     xTaskCreate(task1,"task1",521,NULL,2,NULL);
     xTaskCreate(task2,"task2",521,NULL,2,NULL);
+
+#if defined(GD32VF103_DEBUG_PROBE)
+    /**
+     * 调试探针：断点落在 dp_adder 内部（与芯片无关的共享目标）。
+     *
+     * ⚠️ 放在 `vTaskStartScheduler()` **之前**，不能放进任务里 —— 断点要在
+     *    「continue 之后 20 秒内」命中，而任务里的调用周期由调度节拍决定
+     *    （上游的 `vTaskDelay(500ms)`）。调度器若因缺节拍源没跑起来，探针
+     *    永远不执行 ⇒ 断点永不命中，而症状会是「调试器没停」而不是「探针没跑」。
+     * ⇒ 这里用一个带上下界的循环：既保证反复命中（断点可被多次命中），
+     *    又保证没有调试器时会在有限时间内退出、继续启动调度器。
+     */
+    for (int i = 0; i < 200; i++) {
+        dp_tick++;
+        /**
+         * ⚠️ **不能写 `if (dp_msg[0] == 0) for (;;);`** —— 那会死等一个字符串被改，
+         *    放在 `main` 里会把启动卡死（旧夹具里那么写是因为它在任务循环里、
+         *    且那场景本来就停在断点上）。这里只需**引用**它防止被 `--gc-sections` 丢掉。
+         */
+        if (dp_msg[0] == '\0') { dp_msg[0] = '\0'; }
+        (void)dp_adder((int)dp_tick, 100);
+        for (volatile int d = 0; d < 200000; d++) { }
+    }
+#endif
 
     vTaskStartScheduler();
 }
