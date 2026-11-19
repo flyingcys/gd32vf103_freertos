@@ -70,8 +70,8 @@ C_SOURCES =  \
 		${wildcard $(TOP_DIR)/SEGGER/FreeRTOSV10/*.c} \
 		${wildcard $(TOP_DIR)/SEGGER/FreeRTOSV10/Config/*.c} \
 		${wildcard $(TOP_DIR)/SEGGER/port/*.c} \
-		${wildcard $(TOP_DIR)/Application/*.c} \
 		${wildcard $(TOP_DIR)/src/*.c} \
+		${wildcard $(TOP_DIR)/src/_shared/*.c} \
 
 # ASM sources
 ASM_SOURCES =  \
@@ -142,8 +142,9 @@ C_INCLUDES = \
 		-I $(TOP_DIR)/SEGGER/Config  \
 		-I $(TOP_DIR)/SEGGER/FreeRTOSV10  \
 		-I $(TOP_DIR)/SEGGER/port  \
-		-I $(TOP_DIR)/Application \
-		-I $(TOP_DIR)/src
+		-I $(TOP_DIR)/src \
+		-I $(TOP_DIR)/src \
+		-I $(TOP_DIR)/src/_shared
 
 
 # compile gcc flags
