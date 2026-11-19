@@ -106,8 +106,19 @@ int main(void)
     gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, GPIO_PIN_7);
     gpio_bit_reset(GPIOA, GPIO_PIN_7);
 
-    xTaskCreate(task1,"task1",521,NULL,2,NULL);
-    xTaskCreate(task2,"task2",521,NULL,2,NULL);
+    /**
+     * 任务名是 `TaskA` / `TaskB`。
+     *
+     * 这不是 OpenOCD 的要求 —— OpenOCD 只认符号（`pxCurrentTCB` 等），
+     * 线程名是运行时从 TCB 读的，叫什么都能列出来。
+     * 真正约束它的是调试工具链的**预期值必须独立于被测对象**这条纪律：
+     * 测试侧另有一张固定的任务名表，用它断言「线程名来自固件而不是工具编的」。
+     * 若这里随代码变化，那条断言就变成了自证。
+     *
+     * 函数名（`task1` / `task2`）保持原名不动：改的只是任务名。
+     */
+    xTaskCreate(task1,"TaskA",521,NULL,2,NULL);
+    xTaskCreate(task2,"TaskB",521,NULL,2,NULL);
 
 #if defined(GD32VF103_DEBUG_PROBE)
     /**
