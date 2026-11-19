@@ -27,7 +27,10 @@ TOP_DIR = $(PROJECTBASE)
 #######################################
 # binaries
 #######################################
-PREFIX    = /opt/gcc-riscv64-unknown-elf/bin/riscv64-unknown-elf-
+# PREFIX may be overridden from the command line or the environment,
+# e.g. `make PREFIX=/path/to/riscv64-unknown-elf-` (the trailing dash is part of it).
+# Defaults to the original absolute path so existing builds are unchanged.
+PREFIX   ?= /opt/gcc-riscv64-unknown-elf/bin/riscv64-unknown-elf-
 CC        = $(PREFIX)gcc
 AS        = $(PREFIX)gcc -x assembler-with-cpp
 OBJCOPY   = $(PREFIX)objcopy
