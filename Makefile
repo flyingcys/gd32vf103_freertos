@@ -71,6 +71,7 @@ C_SOURCES =  \
 		${wildcard $(TOP_DIR)/SEGGER/FreeRTOSV10/Config/*.c} \
 		${wildcard $(TOP_DIR)/SEGGER/port/*.c} \
 		${wildcard $(TOP_DIR)/Application/*.c} \
+		${wildcard $(TOP_DIR)/src/*.c} \
 
 # ASM sources
 ASM_SOURCES =  \
@@ -117,9 +118,14 @@ AS_DEFS = \
 		-DUSE_STDPERIPH_DRIVER
 
 # C defines
+# EXTRA_DEFS may be supplied on the command line or via the environment, e.g.
+#   make EXTRA_DEFS=-DGD32VF103_DEBUG_PROBE
+# Left empty by default so existing builds are unchanged.
+EXTRA_DEFS ?=
 C_DEFS = \
 		-DGD32VF103C_START \
-		-DUSE_STDPERIPH_DRIVER
+		-DUSE_STDPERIPH_DRIVER \
+		$(EXTRA_DEFS)
 
 # AS includes
 AS_INCLUDES = \
@@ -136,7 +142,8 @@ C_INCLUDES = \
 		-I $(TOP_DIR)/SEGGER/Config  \
 		-I $(TOP_DIR)/SEGGER/FreeRTOSV10  \
 		-I $(TOP_DIR)/SEGGER/port  \
-		-I $(TOP_DIR)/Application
+		-I $(TOP_DIR)/Application \
+		-I $(TOP_DIR)/src
 
 
 # compile gcc flags

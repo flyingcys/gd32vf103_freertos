@@ -15,6 +15,16 @@
 #include "FreeRTOS.h" 
 #include "task.h"
 #include "app_config.h"
+/**
+ * 调试探针（可选）：工程根下 src/debug_probe.h 存在时才编译进来。
+ *
+ * 缺省不定义 ⇒ 未放探针的工程行为完全不变。
+ * 需要在调试器里断点观察共享目标时，把 debug_probe.{c,h} 放进 src/ 并在
+ * 构建时加 -DGD32VF103_DEBUG_PROBE=1 即可。
+ */
+#if defined(GD32VF103_DEBUG_PROBE)
+#include "debug_probe.h"
+#endif
 
 
 void uart_log_init(void)
@@ -45,6 +55,13 @@ void task1(void *p)
     for(;;)
     {
         gpio_bit_write(GPIOA, GPIO_PIN_7, (bit_status)(1-gpio_input_bit_get(GPIOA, GPIO_PIN_7)));
+#if defined(GD32VF103_DEBUG_PROBE)
+        /* 调试探针：断点落在 dp_adder 内部（与芯片无关的共享目标）。
+         * 只在定义了 GD32VF103_DEBUG_PROBE 时参与构建 ⇒ 缺省行为逐字节不变。 */
+        dp_tick++;
+        if (dp_msg[0] == 0) { for (;;); }
+        (void)dp_adder((int)dp_tick, 100);
+#endif
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
