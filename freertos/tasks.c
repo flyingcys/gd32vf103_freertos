@@ -369,6 +369,17 @@ PRIVILEGED_DATA TCB_t * volatile pxCurrentTCB = NULL;
 PRIVILEGED_DATA static List_t pxReadyTasksLists[ configMAX_PRIORITIES ];/*< Prioritised ready tasks. */
 PRIVILEGED_DATA static List_t * volatile pxDelayedTaskList;				/*< Points to the delayed task list currently being used. */
 PRIVILEGED_DATA static List_t * volatile pxOverflowDelayedTaskList;		/*< Points to the delayed task list currently being used to hold tasks that have overflowed the current tick count. */
+/**
+ * ⚠️ **这两个必须定义在文件作用域，不能挪进 `prvInitialiseTaskLists()`**。
+ *
+ * 这份任务调度源文件曾把它们写在初始化函数体内，导致编译器产出带后缀的局部符号
+ * （`xDelayedTaskList1.1`）。内核感知的调试器按**精确名**查找这两个列表，
+ * 找不到就列不出被延迟的任务。
+ *
+ * 上游 FreeRTOS 的同一处注释已写明这一点（「移到函数作用域会破坏内核感知调试器」）。
+ */
+PRIVILEGED_DATA static List_t xDelayedTaskList1;			/*< Delayed tasks. */
+PRIVILEGED_DATA static List_t xDelayedTaskList2;			/*< Delayed tasks (two lists are used - one for delays that have overflowed the current tick count. */
 PRIVILEGED_DATA static List_t xPendingReadyList;						/*< Tasks that have been readied while the scheduler was suspended.  They will be moved to the ready list when the scheduler is resumed. */
 
 #if( INCLUDE_vTaskDelete == 1 )
@@ -3509,8 +3520,6 @@ static portTASK_FUNCTION( prvIdleTask, pvParameters )
 static void prvInitialiseTaskLists( void )
 {
 UBaseType_t uxPriority;
-PRIVILEGED_DATA static List_t xDelayedTaskList1;	/*< Delayed tasks. */
-PRIVILEGED_DATA static List_t xDelayedTaskList2;	/*< Delayed tasks (two lists are used - one for delays that have overflowed the current tick count. */
 
 	for( uxPriority = ( UBaseType_t ) 0U; uxPriority < ( UBaseType_t ) configMAX_PRIORITIES; uxPriority++ )
 	{
